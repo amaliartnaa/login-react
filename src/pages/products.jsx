@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/jsx-key */
-import { Fragment, useState } from "react"
+import { Fragment, useEffect, useState } from "react"
 import CardProduct from "../components/Fragments/CardProduct"
 import Button from "../components/Elements/Button";
 // import Counter from "../components/Fragments/Counter";
@@ -34,12 +34,22 @@ const products = [
 const email = localStorage.getItem('email');
 
 const ProductsPage = () => {
-    const [cart, setCart] = useState([
-        {
-            id: 1,
-            qty: 1,
+    const [cart, setCart] = useState([]);
+    const [totalPrice, setTotalPrice] = useState(0);
+    useEffect(() => {
+        setCart(JSON.parse(localStorage.getItem("cart")) || [])
+    }, []);
+
+    useEffect(() => {
+        if (cart.length > 0) {
+            const sum = cart.reduce((acc, item) => {
+                const product = products.find((product) => product.id === item.id);
+                return acc + product.price
+            }, 0);
+            setTotalPrice(sum);
+            localStorage.setItem("cart", JSON.stringify(cart));
         }
-    ])
+    }, [cart]) 
 
     const handleLogout = () => {
         
@@ -56,7 +66,7 @@ const ProductsPage = () => {
         } else {
             setCart([...cart, { id, qty: 1}])
         }
-    }
+    };
 
     return (
         <Fragment>
@@ -98,15 +108,26 @@ const ProductsPage = () => {
                             return (
                                 <tr key={item.id}>
                                     <td>{product.name}</td>
-                                    <td>{product.price.toLocaleString('id-ID', {styles: 'currency', currency: 'IDR'})}</td>
+                                    <td>Rp{" "}{product.price.toLocaleString('id-ID', {styles: 'currency', currency: 'IDR'})}</td>
                                     <td>{item.qty}</td>
                                     <td>{(item.qty * product.price).toLocaleString('id-ID', {styles: 'currency', currency: 'IDR'})}</td>
                                 </tr>
                             )
                         })}
+                        <tr>
+                            <td colSpan={3}><b>Price</b></td>
+                            <td>
+                                <b>
+                                    Rp{" "}{totalPrice.toLocaleString('id-ID', {styles: 'currency', currency: 'IDR'})}
+                                </b>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
+            {/* <div className="mt-5 flex justify-center mb-5">
+                <Counter></Counter>
+            </div> */}
         </div>
         {/* <div className="flex w-100 justify-center">
             <Counter></Counter>
