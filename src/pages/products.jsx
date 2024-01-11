@@ -5,43 +5,51 @@
 import { Fragment, useEffect, useRef, useState } from "react"
 import CardProduct from "../components/Fragments/CardProduct"
 import Button from "../components/Elements/Button";
+import { getProducts } from "../services/product.service";
 // import Counter from "../components/Fragments/Counter";
 
-const products = [
-    {
-        id: 1,
-        name: "Sepatu Baru",
-        price: 1000000,
-        image: "/images/shoes-1.jpg",
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam animi illum aliquid eos corrupti consequuntur accusamus ipsum quis architecto vero, sequi perspiciatis. Iure quo, in quos consectetur eum distinctio earum?"
-    },
-    {
-        id: 2,
-        name: "Sepatu Lama",
-        price: 500000,
-        image: "/images/shoes-1.jpg",
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam animi illum aliquid eos"
-    },
-    {
-        id: 3,
-        name: "Sepatu Adadong",
-        price: 2000000,
-        image: "/images/shoes-1.jpg",
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam animi illum aliquid eos"
-    }
-]
+// const products = [
+//     {
+//         id: 1,
+//         name: "Sepatu Baru",
+//         price: 1000000,
+//         image: "/images/shoes-1.jpg",
+//         description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam animi illum aliquid eos corrupti consequuntur accusamus ipsum quis architecto vero, sequi perspiciatis. Iure quo, in quos consectetur eum distinctio earum?"
+//     },
+//     {
+//         id: 2,
+//         name: "Sepatu Lama",
+//         price: 500000,
+//         image: "/images/shoes-1.jpg",
+//         description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam animi illum aliquid eos"
+//     },
+//     {
+//         id: 3,
+//         name: "Sepatu Adadong",
+//         price: 2000000,
+//         image: "/images/shoes-1.jpg",
+//         description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam animi illum aliquid eos"
+//     }
+// ]
 
 const email = localStorage.getItem('email');
 
 const ProductsPage = () => {
     const [cart, setCart] = useState([]);
     const [totalPrice, setTotalPrice] = useState(0);
+    const [products, setProducts] = useState([]);
     useEffect(() => {
         setCart(JSON.parse(localStorage.getItem("cart")) || [])
     }, []);
 
     useEffect(() => {
-        if (cart.length > 0) {
+        getProducts((data) => {
+            setProducts(data);
+        });
+    }, [])
+
+    useEffect(() => {
+        if (products.length > 0 && cart.length > 0) {
             const sum = cart.reduce((acc, item) => {
                 const product = products.find((product) => product.id === item.id);
                 return acc + product.price
@@ -49,7 +57,7 @@ const ProductsPage = () => {
             setTotalPrice(sum);
             localStorage.setItem("cart", JSON.stringify(cart));
         }
-    }, [cart]) 
+    }, [cart, products]) 
 
     const handleLogout = () => {
         
@@ -97,10 +105,10 @@ const ProductsPage = () => {
             </div>
             <div className="flex justify-center py-5">
             <div className="w-3/4 flex flex-wrap">
-                {products.map((product) => (
+                {products.length > 0 && products.map((product) => (
                     <CardProduct key={product.id}>
                         <CardProduct.Header image={product.image}/>
-                        <CardProduct.Body name={product.name}>
+                        <CardProduct.Body name={product.title}>
                             {product.description}
                         </CardProduct.Body>
                     <CardProduct.Footer price={product.price} id={product.id}handleAddToCart={handleAddToCart}/>
@@ -124,14 +132,14 @@ const ProductsPage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {cart.map((item) => {
+                        {products.length > 0 && cart.map((item) => {
                             const product = products.find((product) => product.id === item.id);
                             return (
                                 <tr key={item.id}>
-                                    <td>{product.name}</td>
-                                    <td>Rp{" "}{product.price.toLocaleString('id-ID', {styles: 'currency', currency: 'IDR'})}</td>
+                                    <td>{product.title.substring(0, 10)}...</td>
+                                    <td>${" "}{product.price.toLocaleString('id-ID', {styles: 'currency', currency: 'IDR'})}</td>
                                     <td>{item.qty}</td>
-                                    <td>{(item.qty * product.price).toLocaleString('id-ID', {styles: 'currency', currency: 'IDR'})}</td>
+                                    <td>{(item.qty * product.price).toLocaleString('id-ID', {styles: 'currency', currency: 'USD'})}</td>
                                 </tr>
                             )
                         })}
@@ -139,7 +147,7 @@ const ProductsPage = () => {
                             <td colSpan={3}><b>Price</b></td>
                             <td>
                                 <b>
-                                    Rp{" "}{totalPrice.toLocaleString('id-ID', {styles: 'currency', currency: 'IDR'})}
+                                    ${" "}{totalPrice.toLocaleString('id-ID', {styles: 'currency', currency: 'USD'})}
                                 </b>
                             </td>
                         </tr>
